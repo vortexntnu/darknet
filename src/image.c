@@ -247,6 +247,14 @@ void draw_detections(image im, detection *dets, int num, float thresh, char **na
             if (dets[i].prob[j] > thresh){
                 if (class < 0) {
                     strcat(labelstr, names[j]);
+
+                    // Add probability or x-value to label in CV
+                    strcat(labelstr, "  ");
+                    char c[50];
+                    sprintf(c, "%g", dets[i].prob[j]);
+                    //sprintf(c, "%g", dets[i].bbox.x);
+                    strcat(labelstr, c);
+
                     class = j;
                 } else {
                     strcat(labelstr, ", ");
