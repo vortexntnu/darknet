@@ -1,45 +1,109 @@
-![Darknet Logo](http://pjreddie.com/media/files/darknet-black-small.png)
+# Training custom yolo-weights
 
-# Darknet #
-Darknet is an open source neural network framework written in C and CUDA. It is fast, easy to install, and supports CPU and GPU computation.
+## Sampling data
 
-**Discord** invite link for for communication and questions: https://discord.gg/zSq8rtW
+### Taking pictures
+Take at least a couple of hundred images with various background, lighting and also take some pictures where the object is partly covered. You also want to take pictures with varying angles, tilt and distance. The number of images needed will also depend on whether the object you want to detect have large variations in appearence. 
 
-## Scaled-YOLOv4: 
+These pictures do not need to be in high resolution as Yolo will automatically scale them down to around 400x400.
 
-* **paper:** https://arxiv.org/abs/2011.08036
+### Naming data
 
-* **source code - Pytorch (use to reproduce results):** https://github.com/WongKinYiu/ScaledYOLOv4
+To rename all the images in a clean format you can run "photo_renamer.py". Just enter the folder directory in
+the folder variable and run.
 
-* **source code - Darknet:** https://github.com/AlexeyAB/darknet
+## Labeling images
 
-* **Medium:** https://alexeyab84.medium.com/scaled-yolo-v4-is-the-best-neural-network-for-object-detection-on-ms-coco-dataset-39dfa22fa982?source=friends_link&sk=c8553bfed861b1a7932f739d26f487c8
+```bash
+cd labelImg
+```
 
-## YOLOv4:
+Please read the readme in the labelImg folder for installation and how to run the program.
 
-* **paper:** https://arxiv.org/abs/2004.10934
+Add your classes in data/predefined_classes.txt (and remove the pre-existing classes)
 
-* **source code:** https://github.com/AlexeyAB/darknet
+## IMPORTANT! BEFORE YOU BEGIN LABELING
+Press the button on the left of the program where it says "Pascal/VOC" until it says "YOLO" to have the correct format.
 
-* **Wiki:** https://github.com/AlexeyAB/darknet/wiki
+To be efficient in labeling, please use the  following keyboard shortcuts:
 
-* **useful links:** https://medium.com/@alexeyab84/yolov4-the-most-accurate-real-time-neural-network-on-ms-coco-dataset-73adfd3602fe?source=friends_link&sk=6039748846bbcf1d960c3061542591d7
+| Keyboard Shortcuts 	| Description                    	|
+|--------------------	|--------------------------------	|
+| CTRL + U           	| Load all images from directory 	|
+| CTRL + SHIFT + D   	| Delete the current image       	|
+| W                  	| Create a rect box              	|
+| D                  	| Next Image                     	|
+| A                  	| Previous Image                 	|
+| CTRL + S           	| Save image                     	|
 
-For more information see the [Darknet project website](http://pjreddie.com/darknet).
+## You should now have:
 
-For questions or issues please use the [Google Group](https://groups.google.com/forum/#!forum/darknet).
+1 folder with all your training images numbered as 1, 2, 3... aswell as a matching .txt document on the format:
 
-![scaled_yolov4](https://user-images.githubusercontent.com/4096485/112776361-281d8380-9048-11eb-8083-8728b12dcd55.png) AP50:95 - FPS (Tesla V100) Paper: https://arxiv.org/abs/2011.08036
-
-----
-
-![YOLOv4Tiny](https://user-images.githubusercontent.com/4096485/101363015-e5c21200-38b1-11eb-986f-b3e516e05977.png)
-
-----
-
-![YOLOv4](https://user-images.githubusercontent.com/4096485/90338826-06114c80-dff5-11ea-9ba2-8eb63a7409b3.png)
+```bash
+ <Class>                 <Bounding Box>
+    0          0.231771 0.913564 0.112351 0.172872
+    0          0.321771 0.143564 0.522351 0.653872
+```
 
 
-----
+# Training with Darknet
 
-![OpenCV_TRT](https://user-images.githubusercontent.com/4096485/90338805-e5e18d80-dff4-11ea-8a68-5710956256ff.png)
+### Creating train.txt and test.txt
+
+Copy all training images and .txt files in
+```
+darknet\data\obj
+```
+
+Then run create_test_and_train.py after you have set the directory where the images are. Remember to use the full path. You should now have two .txt files: 
+```
+train.txt and test.txt
+```
+Here you should see the path of every image in darknet\data\obj. If you get any errors when trying to start training, change the path in train.txt and test.txt to full paths. This can easily be done by selecting everything infront of eg. 1.txt and changing all occurences (CTRL + F2) in VSCode.
+
+
+1. Find the file yolo-obj.cfg in 
+```
+darknet/cfg/yolo-obj.cfg
+```
+and configure based on number of classes. 
+
+max_batches = 2000*number_of_classes, minimum 4000
+```
+steps = 80%, 90% of max_batches (eg. 3200, 3600)
+```
+On the last convolutional layer:
+```
+filters = 5*(number_of_classes + 5) (eg. 30 for classes=1)
+```
+
+On the last region layer:
+```
+classes = number_of_classes (eg. 1)
+```
+
+2. Create file obj.names in the directory darknet/data, with classnames - each in new line
+eg.
+
+```
+spy
+robot
+```
+3. Create file obj.data in the directory darknet/data. It should look like this, where classes = number of classes:
+
+```
+classes= 1
+train  = data/obj/train.txt
+valid  = data/obj/test.txt
+names = data/obj.names
+backup = backup/
+```
+backup/ is where the trained weights will appear.
+
+### Now you're ready to start training!
+
+```bash
+./darknet detector train cfg/obj.data cfg/yolo-obj.cfg cfg/darknet19.448.conv.23
+```
+
