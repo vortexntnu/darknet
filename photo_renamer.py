@@ -1,7 +1,7 @@
 import os
 
-folder = r'folder directory (use full path)'
-count = 1
+folder = r'/home/vortex/vortex_ws/src/darknet_ros_zed/screenshots2/'
+count = 301
 # count increase by 1 in each iteration
 # iterate all files from a directory
 for file_name in os.listdir(folder):

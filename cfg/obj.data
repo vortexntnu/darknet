@@ -2,4 +2,4 @@ classes = 1
 train = /home/vortex/vortex_ws/src/darknet_ros_zed/darknet/cfg/train.txt
 valid = /home/vortex/vortex_ws/src/darknet_ros_zed/darknet/cfg/test.txt
 names = obj.names
-backup = backup2
+backup = backup/
